@@ -52,16 +52,12 @@ def multilinear(name,indicators,predictors,tablebool):
     
     
     
-    
-    
-    
+        
 
 def gradboost(name,indicators,predictors,tablebool):
-    print("running gradient boost predictor for the country",name,'\n')
-    
+    print("running gradient boost predictor for the country",name,'\n') 
     x,y=declaration(name,indicators,predictors)
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
-
     gbm_hyperparams = {
     'n_estimators': 100,
     'max_depth': 10,
