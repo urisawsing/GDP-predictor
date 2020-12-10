@@ -14,7 +14,7 @@ def selection(numcorr):
     data['CountryCode']=cat
     correction=data['CountryCode'].cat.codes
     data['CountryCode']=correction
-    resized= data.Value.groupby([data.CountryCode,data.Year, data.IndicatorCode]).sum().unstack().fillna(0).astype(float)
+    resized = data.pivot_table(index = ['CountryCode','Year'], columns = "IndicatorCode", values = 'Value')
     resized['COUNTRYENC']=resized.index.get_level_values(0)
     resized['NextYearGDP']=resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
     resized=resized.drop(index=2010,level=1)
@@ -24,17 +24,22 @@ def selection(numcorr):
     high=absgdp.nlargest(numcorr)
     return high
 
-def indicators(numcorr):
+def indicators(ncorr):
     data=re.readall()
     num=clist.numadapt()
     cat=data['CountryCode'].astype('category')
     data['CountryCode']=cat
     correction=data['CountryCode'].cat.codes
     data['CountryCode']=correction
-    resized= data.Value.groupby([data.CountryCode,data.Year, data.IndicatorCode]).sum().unstack().fillna(0).astype(float)
+    resized = data.pivot_table(index = ['CountryCode','Year'], columns = "IndicatorCode", values = 'Value')
     resized['COUNTRYENC']=resized.index.get_level_values(0)
     resized['NextYearGDP']=resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
+    chosen=selection(ncorr)
+    indicators=pd.DataFrame(chosen)
+    indexs=indicators.index.values.tolist()
+    bestcorr=resized[indexs]
     swapped=resized.swaplevel(0,1)
     df2010=swapped.loc[[2010]]
     resized=resized.drop(index=2010,level=1)
-    return resized, df2010
+    final=bestcorr.to_numpy()
+    return final, df2010
