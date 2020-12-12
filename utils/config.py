@@ -10,3 +10,10 @@ LOGS_PATH = os.path.join(BASE_DIR, "logs")
 
 NUM_PREDICTORS=50
 
+GBM_HYP={
+        'n_estimators': 100,
+        'max_depth': 10,
+        'learning_rate': 0.1,
+        'loss': 'ls',
+       
+}
