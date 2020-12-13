@@ -6,6 +6,7 @@ from utils import config as cn
 import analysis as an
 import sqlite3
 import pandas as pd
+import numpy as np
 
 def declaration(name,indicators,predictors):
     #declaration of targets in the correct format
