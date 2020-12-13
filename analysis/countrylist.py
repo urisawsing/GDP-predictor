@@ -14,9 +14,11 @@ def countryarray():
     return countries
 
 def numadapt():
+    print("Getting country list...")
     countries= countryarray()
     num=[]
     for i in range(len(countries)):
     	num.append(i+1)
     countries['num']=num
+    print("Done\n")
     return countries

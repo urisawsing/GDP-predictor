@@ -8,9 +8,11 @@ import pandas as pd
 
 
 def readall():
+    print("Reading the SQL file...")
     db=sqlite3.connect(cn.DATABASE_PATH)
     cur = db.cursor()
     di = pd.read_sql_query("SELECT * from CountryIndicators", db)
+    print("File read\n")
     return di
     
 def read(country):
