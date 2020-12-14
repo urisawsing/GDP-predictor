@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 
 import numpy as np
@@ -9,12 +8,11 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
-from analysis import selectorall as sall
-from utils import config as cn
-sys.path.append("..")
+from .io import fselection, indicators
+from .config import NUM_PREDICTORS, MODELS_PATH, GBM_HYP
 
 
-def declaration(numind=cn.NUM_PREDICTORS):
+def declaration(numind=NUM_PREDICTORS):
     """???
 
     Parameters
@@ -31,15 +29,15 @@ def declaration(numind=cn.NUM_PREDICTORS):
     npre2010: pandas.DataFrame
         ?
     """
-    indicators, data, num = sall.fselection()
-    predictors = sall.indicators(indicators, data, num)
+    high, data, num = fselection()
+    predictors = indicators(high, data, num)
     predictors = predictors.fillna(0)
 
-    indexs = indicators['Unnamed: 0']
+    indexs = high['Unnamed: 0']
     indexs = indexs.tolist()
 
     names = predictors.columns.tolist()
-    indicators["Unnamed: 0"] = indicators["Unnamed: 0"] + 1
+    high["Unnamed: 0"] = high["Unnamed: 0"] + 1
     definitivo = [names[ind] for ind in indexs]
     definitivo.append('COUNTRYENC')
 
@@ -60,7 +58,7 @@ def declaration(numind=cn.NUM_PREDICTORS):
 #################################################################################
 
 
-def GBmodelTrain(ncorr=cn.NUM_PREDICTORS):
+def GBmodelTrain(ncorr=NUM_PREDICTORS):
     """???
 
     Parameters
@@ -106,10 +104,10 @@ def GBmodelTrain(ncorr=cn.NUM_PREDICTORS):
     name = input("Write the name of the model")
     name1 = name + 'GBM.joblib'
     dirname = os.path.dirname(name1)
-    fullname = os.path.join(cn.MODELS_PATH, dirname)
+    fullname = os.path.join(MODELS_PATH, dirname)
     dump(gbm_model, fullname)
 
-    return gbm_model if ncorr != cn.NUM_PREDICTORS else None
+    return gbm_model if ncorr != NUM_PREDICTORS else None
 
 
 def GBmodelPredict():
@@ -200,7 +198,7 @@ def GBmodelCorr(ncorr=1329):
 
     x, y, npre2010 = declaration(ncorr)
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
-    gbm_hyperparams = cn.GBM_HYP
+    gbm_hyperparams = GBM_HYP
     gbm_model = GradientBoostingRegressor(**gbm_hyperparams)
     t0 = time.time()
     gbm_model.fit(X_train, y_train)
@@ -217,4 +215,4 @@ def GBmodelCorr(ncorr=1329):
     fullname = name + 'GBM.joblib'
     dump(gbm_model, fullname)
 
-    return gbm_model if ncorr != cn.NUM_PREDICTORS else None
+    return gbm_model if ncorr != NUM_PREDICTORS else None

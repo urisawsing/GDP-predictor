@@ -1,14 +1,10 @@
 """Reads the database."""
 import sqlite3
-import sys
 
 import pandas as pd
 
-from models import model_countries_together as allc
-from analysis import countrylist as clist
-from analysis import reader as re
-from utils import config as cn
-sys.path.append("..")
+from .models import GBmodelTrain
+from .config import DATABASE_PATH
 
 
 # readers
@@ -19,7 +15,7 @@ def readall():
     -------
     pandas.DataFrame
     """
-    db = sqlite3.connect(cn.DATABASE_PATH)
+    db = sqlite3.connect(DATABASE_PATH)
     return pd.read_sql_query("SELECT * FROM CountryIndicators", db)
 
 
@@ -35,7 +31,7 @@ def read(country):
     -------
     pandas.DataFrame
     """
-    db = sqlite3.connect(cn.DATABASE_PATH)
+    db = sqlite3.connect(DATABASE_PATH)
     di = pd.read_sql_query("SELECT * FROM CountryIndicators", db)
     return di[di['CountryCode'].str.contains(country)]
 
@@ -49,7 +45,7 @@ def countryarray():
     pandas.DataFrame
         the data
     """
-    db = sqlite3.connect(cn.DATABASE_PATH)
+    db = sqlite3.connect(DATABASE_PATH)
     dl = pd.read_sql_query("SELECT * from Countries", db)
     return dl.iloc[:, 0:2]
 
@@ -92,8 +88,8 @@ def fselection(answer=False):
 
     """
     print("Selecting the best indicators...\n")
-    data = re.readall()
-    num = clist.numadapt()
+    data = readall()
+    num = numadapt()
 
     # append the category to the code
     _append_category_to_countrycode(data)
@@ -107,7 +103,7 @@ def fselection(answer=False):
     ans = input("In the case you want type Yes, if not type No")
     if ans in ['No', 'no', 'N', 'noup']:
         print("This option may take a while(like 10min), please wait")
-        model = allc.GBmodelTrain(ncorr=1329)
+        model = GBmodelTrain(ncorr=1329)
         a = model.feature_importances_
         df = pd.DataFrame(a)
         high = df[0].nlargest(50)
@@ -132,7 +128,7 @@ def selection(answer=False):
         ?
     """
     print("Getting the best indicators...")
-    data = re.readall()
+    data = readall()
     _append_category_to_countrycode(data)
     # resized = data.pivot_table(index=['CountryCode', 'Year'], columns="IndicatorCode", values='Value')
     high = pd.read_csv("bestindicators.csv")

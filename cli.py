@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+import sys
 import os
 import logging
 import argparse
 from datetime import datetime
+
+sys.path.append('.')
 
 from utils import config, io, models
 
