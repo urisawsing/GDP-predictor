@@ -11,6 +11,4 @@ LOGS_PATH = os.path.join(BASE_DIR, "logs")
 
 NUM_PREDICTORS = 50
 
-GBM_HYP = {
-
-}
+EXHAUSTIVE_ITER=10
