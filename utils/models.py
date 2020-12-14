@@ -89,7 +89,7 @@ def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER):
 
 def ExhaustiveML(iterations=EXHAUSTIVE_ITER):
     print("You entered the Exhaustive option for the MultiLinear model\n")
-    print("This method will iterate the predictive model", iterat\nions,"times\n")
+    print("This method will iterate the predictive model", iterations,"times\n")
     
     
     rsq=[]
