@@ -20,14 +20,22 @@ from joblib import dump, load
 
 
 def declaration(numind=cn.NUM_PREDICTORS):
-    indicators=sall.fselection()
-    predictors,pre2010=sall.indicators()
+    indicators,data,num=sall.fselection()
+    predictors=sall.indicators(indicators,data,num)
+    predictors=predictors.fillna(0)
     indexs=indicators['Unnamed: 0']
-    predictors=np.nan_to_num(predictors)
-    pre2010=pre2010.fillna(0)
-    npre2010=pre2010.iloc[:,indexs].to_numpy()
-    x=predictors[:,:-1]
-    y=predictors[:,-1]
+    indexs=indexs.tolist()
+    names=predictors.columns.tolist()
+    indicators["Unnamed: 0"]=indicators["Unnamed: 0"]+1
+    definitivo = [names[ind] for ind in indexs]
+    definitivo.append('COUNTRYENC')
+    swapped=predictors.swaplevel(0,1)
+    df2010=swapped.loc[[2010]]
+    pre2010=df2010.fillna(0)
+    npre2010=pre2010[definitivo]
+    x=predictors[definitivo]
+    x=x.fillna(0)
+    y=predictors['NextYearGDP']
     print("Predictors obtained\n")
     return x,y,npre2010
 
@@ -36,24 +44,32 @@ def declaration(numind=cn.NUM_PREDICTORS):
 #################################################################################
 
 def GBmodelTrain(ncorr=cn.NUM_PREDICTORS):
-    print("running gradient boosting for all countries")
+    print("running gradient boosting for all countries...")
+    t0 = time.time()
     x,y,npre2010=declaration(ncorr)
+    print(f"Elapsed time preprocessing: {time.time() - t0} seconds")
+    t1 = time.time()
+    print("Training the model...")
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
-    gbm_hyperparams = {
-        'n_estimators': 100,
-        'max_depth': 10,
-        'learning_rate': 0.1,
-        'loss': 'ls'
+    gbm_hyperparams = {     
+        'n_estimators': 2000,    
+        'max_depth': 5,     
+        'learning_rate': 0.1,   
+        'loss': 'huber',    
+        'criterion': 'mse',   
+        'validation_fraction': 0.01,   
+        'n_iter_no_change': 20 
     }
     gbm_model = GradientBoostingRegressor(**gbm_hyperparams)
     t0 = time.time()
     gbm_model.fit(X_train, y_train)
-    print(f"Elapsed time training: {time.time() - t0} seconds")
-    t0 = time.time()
+    print(f"Elapsed time training: {time.time() - t1} seconds")
+    t1 = time.time()
     gbm_y_pred = gbm_model.predict(X_test)
-    print(f"Elapsed time predicting: {time.time() - t0} seconds")
+    print(f"Elapsed time predicting: {time.time() - t1} seconds")
     print(f"RMSE: {mean_squared_error(y_test, gbm_y_pred)**0.5}")
     print(f"R^2: {r2_score(y_test, gbm_y_pred)}")
+    print(f"Total execution time: {time.time() - t0} seconds")
     name=input("Write the name of the model")
     fullname=name+'GBM.joblib'
     dump(gbm_model, fullname) 
@@ -65,7 +81,8 @@ def GBmodelPredict():
     fullname=name+'GBM.joblib'
     x,y,npre2010=declaration()
     gbm_model=load(fullname)
-    prediction=gbm_model.predict(npre2010[:,:-1]).astype(float)
+    print(npre2010)
+    prediction=gbm_model.predict(npre2010).astype(float)
     print(prediction)
     np.savetxt("primeraprediccio.csv",prediction)
     return prediction
@@ -116,12 +133,7 @@ def GBmodelCorr(ncorr=1329):
     print("running gradient boosting for getting the indicators")
     x,y,npre2010=declaration(ncorr)
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
-    gbm_hyperparams = {
-        'n_estimators': 100,
-        'max_depth': 10,
-        'learning_rate': 0.1,
-        'loss': 'ls'
-    }
+    gbm_hyperparams = cn.GBM_HYP
     gbm_model = GradientBoostingRegressor(**gbm_hyperparams)
     t0 = time.time()
     gbm_model.fit(X_train, y_train)
