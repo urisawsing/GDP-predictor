@@ -13,7 +13,7 @@ from .io import  indicators
 from .io import readall
 from .io import numadapt
 from .io import _append_category_to_countrycode
-from .config import NUM_PREDICTORS, MODELS_PATH, GBM_HYP, EXHAUSTIVE_ITER
+from .config import NUM_PREDICTORS, MODELS_PATH, EXHAUSTIVE_ITER
 
 
 
@@ -24,7 +24,7 @@ from .config import NUM_PREDICTORS, MODELS_PATH, GBM_HYP, EXHAUSTIVE_ITER
 #EXHAUSTIVE METHODS#
 #######################################################################
 
-def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER):
+def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER,ncorr=NUM_PREDICTORS):
     print("You entered the Exhaustive option for the Gradient boost model\n")
     print("This method will iterate the predictive model", iterations,"times\n")
     
@@ -87,7 +87,7 @@ def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER):
 
 
 
-def ExhaustiveML(iterations=EXHAUSTIVE_ITER):
+def ExhaustiveML(iterations=EXHAUSTIVE_ITER,ncorr=NUM_PREDICTORS):
     print("You entered the Exhaustive option for the MultiLinear model\n")
     print("This method will iterate the predictive model", iterations,"times\n")
     
@@ -112,6 +112,7 @@ def ExhaustiveML(iterations=EXHAUSTIVE_ITER):
         X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
         linear_model = LinearRegression()
         linear_model.fit(X_train, y_train)
+        linear_y_pred = linear_model.predict(X_test)
         t1 = time.time()
         print(f"RMSE: {mean_squared_error(y_test, linear_y_pred)**0.5}")
         print(f"R^2: {r2_score(y_test, linear_y_pred)}")
@@ -125,7 +126,7 @@ def ExhaustiveML(iterations=EXHAUSTIVE_ITER):
     
     name = input("Write the name of the model")
     fullname = os.path.join(MODELS_PATH, name+'E_ML.joblib')
-    dump(gbm_model, fullname)
+    dump(Exh_model, fullname)
         
     
     print(f"Total execution time: {time.time() - t0} seconds")
@@ -206,7 +207,6 @@ def GBmodelPredict():
 
     x, y, npre2010 = declaration()
     gbm_model = load(fullname)
-    print(npre2010)
     prediction = gbm_model.predict(npre2010).astype(float)
     print(prediction)
     np.savetxt("primeraprediccio.csv", prediction)
@@ -228,6 +228,7 @@ def multilinearTrain():
     linear_model.fit(X_train, y_train)
     t0 = time.time()
     linear_model.fit(X_train, y_train)
+    linear_y_pred = linear_model.predict(X_test)
     print(f"Elapsed time training: {time.time() - t0} seconds")
     print(f"RMSE: {mean_squared_error(y_test, linear_y_pred)**0.5}")
     print(f"R^2: {r2_score(y_test, linear_y_pred)}")
@@ -249,20 +250,10 @@ def multilinearPredict():
     """
     name = input("Write the name of the model for predicting, without the extension ML.jlib")
     fullname = name + 'ML.joblib'
-    gbm_model = load(fullname)
+    linear_model = load(fullname)
     x, y, npre2010 = declaration()
     t0 = time.time()
-    gbm_y_pred = gbm_model.predict(X_test)
-    print(f"Elapsed time predicting: {time.time() - t0} seconds")
-    print(f"RMSE: {mean_squared_error(y_test, gbm_y_pred)**0.5}")
-    print(f"R^2: {r2_score(y_test, gbm_y_pred)}")
-
-    results_df = X_test.copy()
-    results_df["y_real"] = y_test
-    results_df["y_pred"] = linear_model.astype(float)
-    results_df["err"] = results_df["y_real"] - results_df["y_pred"]
-    results_df["%_err"] = results_df["err"] / results_df["y_real"] * 100
-    prediction = linear_model.predict(npre2010[:, :-1]).astype(float)
+    prediction = linear_model.predict(npre2010).astype(float)
     return prediction
 
 
