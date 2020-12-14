@@ -65,12 +65,9 @@ def GBmodelPredict():
     fullname=name+'GBM.joblib'
     x,y,npre2010=declaration()
     gbm_model=load(fullname)
-    results_df = X_test.copy()
-    results_df["y_real"] = y_test
-    results_df["y_pred"] = gbm_y_pred.astype(float)
-    results_df["err"] = results_df["y_real"] - results_df["y_pred"]
-    results_df["%_err"] = results_df["err"] / results_df["y_real"] * 100
     prediction=gbm_model.predict(npre2010[:,:-1]).astype(float)
+    print(prediction)
+    np.savetxt("primeraprediccio.csv",prediction)
     return prediction
 
 
@@ -114,7 +111,7 @@ def multilinearPredict():
     prediction=linear_model.predict(npre2010[:,:-1]).astype(float)
     return prediction
 
-
+##################################################################################################
 def GBmodelCorr(ncorr=1329):
     print("running gradient boosting for getting the indicators")
     x,y,npre2010=declaration(ncorr)
