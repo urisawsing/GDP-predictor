@@ -3,7 +3,6 @@ import sqlite3
 
 import pandas as pd
 
-from .models import GBmodelTrain
 from .config import DATABASE_PATH
 
 
@@ -70,49 +69,6 @@ def _append_category_to_countrycode(df):
     df['CountryCode'] = df['CountryCode'].cat.codes
 
 
-def fselection(answer=False):
-    """??
-
-    Parameters
-    ----------
-    answer: boolean
-
-    Returns
-    -------
-    high: pandas.DataFrame
-        ?
-    data: pandas.DataFrame
-        ?
-    num: pandas.DataFrame
-        ?
-
-    """
-    print("Selecting the best indicators...\n")
-    data = readall()
-    num = numadapt()
-
-    # append the category to the code
-    _append_category_to_countrycode(data)
-
-    # resize the data
-    # resized = data.pivot_table(index=['CountryCode', 'Year'], columns="IndicatorCode", values='Value')
-    # resized['COUNTRYENC'] = resized.index.get_level_values(0)
-    # resized['NextYearGDP'] = resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
-
-    print("Do you want to use the selection of indicators predefined?")
-    ans = input("In the case you want type Yes, if not type No")
-    if ans in ['No', 'no', 'N', 'noup']:
-        print("This option may take a while(like 10min), please wait")
-        model = GBmodelTrain(ncorr=1329)
-        a = model.feature_importances_
-        df = pd.DataFrame(a)
-        high = df[0].nlargest(50)
-        high.to_csv("bestindicators.csv")
-    else:
-        high = pd.read_csv("bestindicators.csv")
-
-    print("Indicators selected\n")
-    return high, data, num
 
 
 def selection(answer=False):
