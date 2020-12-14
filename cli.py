@@ -24,13 +24,13 @@ parser.add_argument(
 )
 parser.add_argument(
     "model",
-    choices=["GradBoost", "MultiLin"],
-    help="Model used",
+    choices=["GB", "ML"],
+    help="Model used, gradientboost or multilinear",
 )
 parser.add_argument(
     "priority",
-    choices=["Time", "Results"],
-    help="Choosing between fast execution or exploratory execution",
+    choices=["T", "R"],
+    help="Choosing between fast execution(time) or exploratory execution(results)",
 )
     
 # You can add here custom optional arguments to your program
@@ -40,26 +40,26 @@ if __name__ == "__main__":
     if args.task == "train":
         logging.info("Training")
     
-        if args.model =="Gradboost":
+        if args.model =="GB":
             logging.info("Gradient_Boosting_Method")
     
-            if args.priority =="Time":
+            if args.priority =="T":
                 logging.info("Priorizing_Time")
                 R=models.GBmodelTrain()
             
-            if args.priority =="Results":
+            if args.priority =="R":
                 logging.info("Priorizing_Results")
                 models.GBmodelTrain()
                 R=models.ExhaustiveGBM()
     
-        if args.model=="MultiLin":
+        if args.model=="ML":
             logging.info("MultiLinear_Method")
     
-            if args.priority =="Time":
+            if args.priority =="T":
                 logging.info("Priorizing_Time")
                 R=models.multilinearTrain()
     
-            if args.priority =="Results":
+            if args.priority =="R":
                 logging.info("Priorizing_Results")
                 R=models.ExhaustiveML()
             
@@ -68,8 +68,8 @@ if __name__ == "__main__":
     if args.task == "predict":
         logging.info("Predicting")
     
-        if args.model =="GradBoost":
+        if args.model =="GB":
             models.GBmodelPredict()
     
-        if args.model =="MultiLin":
+        if args.model =="ML":
             models.multilinearPredict()
