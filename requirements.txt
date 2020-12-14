@@ -1,1 +1,5 @@
-Requirements of the model
+numpy
+pandas
+matplotlib
+sklearn
+joblib

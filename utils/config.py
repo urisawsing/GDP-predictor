@@ -1,3 +1,4 @@
+"""Contains the directories of different files and the default number of predictors."""
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -8,4 +9,4 @@ MODELS_PATH = os.path.join(BASE_DIR, "models")
 
 LOGS_PATH = os.path.join(BASE_DIR, "logs")
 
-NUM_PREDICTORS=50
+NUM_PREDICTORS = 50

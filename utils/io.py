@@ -1,103 +1,175 @@
+"""Reads the database."""
+import sqlite3
 import sys
-sys.path.append("..")
-import utils
-from utils import config as cn
-from analysis import reader as re
+
 import pandas as pd
-import numpy as np
-from analysis import countrylist as clist
+
 from models import model_countries_together as allc
+from analysis import countrylist as clist
+from analysis import reader as re
+from utils import config as cn
+sys.path.append("..")
 
-#readers
+
+# readers
 def readall():
-    db=sqlite3.connect(cn.DATABASE_PATH)
-    cur = db.cursor()
-    di = pd.read_sql_query("SELECT * from CountryIndicators", db)
-    return di
- 
-def read(country):
-    db=sqlite3.connect(cn.DATABASE_PATH)
-    cur = db.cursor()
-    di = pd.read_sql_query("SELECT * from CountryIndicators", db)
-    dfcountry = di[di['CountryCode'].str.contains(country)]
-    di=0
-    return dfcountry
+    """Reads the full database.
 
-#countrylist 
+    Returns
+    -------
+    pandas.DataFrame
+    """
+    db = sqlite3.connect(cn.DATABASE_PATH)
+    return pd.read_sql_query("SELECT * FROM CountryIndicators", db)
+
+
+def read(country):
+    """Selects from the database only the passed country.
+
+    Parameters
+    ----------
+    country: str
+        the country whose data will be returned.
+
+    Returns
+    -------
+    pandas.DataFrame
+    """
+    db = sqlite3.connect(cn.DATABASE_PATH)
+    di = pd.read_sql_query("SELECT * FROM CountryIndicators", db)
+    return di[di['CountryCode'].str.contains(country)]
+
+
+# countrylist
 def countryarray():
-    db=sqlite3.connect(cn.DATABASE_PATH)
-    cur = db.cursor()
+    """??
+
+    Returns
+    -------
+    pandas.DataFrame
+        the data
+    """
+    db = sqlite3.connect(cn.DATABASE_PATH)
     dl = pd.read_sql_query("SELECT * from Countries", db)
-    countries=dl.iloc[:,0:2]
-    return countries
+    return dl.iloc[:, 0:2]
+
 
 def numadapt():
-    countries= countryarray()
-    num=[]
-    for i in range(len(countries)):
-    	num.append(i+1)
-    countries['num']=num
+    """Same as `countryarray` but with an extra column.
+
+    Returns
+    -------
+    pandas.DataFrame
+        the data
+    """
+    countries = countryarray()
+    countries['num'] = list(range(1, len(countries) + 1))
     return countries
 
-#selectors
+
+# selectors
+def _append_category_to_countrycode(df):
+    cat = df['CountryCode'].astype('category')
+    df['CountryCode'] = cat
+    df['CountryCode'] = df['CountryCode'].cat.codes
+
 
 def fselection(answer=False):
+    """??
+
+    Parameters
+    ----------
+    answer: boolean
+
+    Returns
+    -------
+    high: pandas.DataFrame
+        ?
+    data: pandas.DataFrame
+        ?
+    num: pandas.DataFrame
+        ?
+
+    """
     print("Selecting the best indicators...\n")
-    data=re.readall()
-    num=clist.numadapt()
-    cat=data['CountryCode'].astype('category')
-    data['CountryCode']=cat
-    correction=data['CountryCode'].cat.codes
-    data['CountryCode']=correction
-    resized = data.pivot_table(index = ['CountryCode','Year'], columns = "IndicatorCode", values = 'Value')
-    resized['COUNTRYENC']=resized.index.get_level_values(0)
-    resized['NextYearGDP']=resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
+    data = re.readall()
+    num = clist.numadapt()
+
+    # append the category to the code
+    _append_category_to_countrycode(data)
+
+    # resize the data
+    # resized = data.pivot_table(index=['CountryCode', 'Year'], columns="IndicatorCode", values='Value')
+    # resized['COUNTRYENC'] = resized.index.get_level_values(0)
+    # resized['NextYearGDP'] = resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
+
     print("Do you want to use the selection of indicators predefined?")
-    de=input("In the case you want type Yes, if not type No")
-    if de=="No"or de=="no" or de=="N" or de=="noup":
+    ans = input("In the case you want type Yes, if not type No")
+    if ans in ['No', 'no', 'N', 'noup']:
         print("This option may take a while(like 10min), please wait")
-        model=allc.GBmodelTrain(ncorr=1329)
-        a=model.feature_importances_
-        df=pd.DataFrame(a)
-        high=df[0].nlargest(50)
+        model = allc.GBmodelTrain(ncorr=1329)
+        a = model.feature_importances_
+        df = pd.DataFrame(a)
+        high = df[0].nlargest(50)
         high.to_csv("bestindicators.csv")
     else:
-        high=pd.read_csv("bestindicators.csv")
-        
+        high = pd.read_csv("bestindicators.csv")
+
     print("Indicators selected\n")
-    return high,data,num
+    return high, data, num
+
 
 def selection(answer=False):
+    """??
+
+    Parameters
+    ----------
+    answer: boolean
+
+    Returns
+    -------
+    high: pandas.DataFrame
+        ?
+    """
     print("Getting the best indicators...")
-    data=re.readall()
-    num=clist.numadapt()
-    cat=data['CountryCode'].astype('category')
-    data['CountryCode']=cat
-    correction=data['CountryCode'].cat.codes
-    data['CountryCode']=correction
-    resized = data.pivot_table(index = ['CountryCode','Year'], columns = "IndicatorCode", values = 'Value')
-    high=pd.read_csv("bestindicators.csv")
+    data = re.readall()
+    _append_category_to_countrycode(data)
+    # resized = data.pivot_table(index=['CountryCode', 'Year'], columns="IndicatorCode", values='Value')
+    high = pd.read_csv("bestindicators.csv")
     print("Done\n")
     return high
 
 
+def indicators(chosen, data, num):
+    """??
 
+    Parameters
+    ----------
+    chosen: pandas.DataFrame
+        ?
+    data: pandas.DataFrame
+        ?
+    num: pandas.DataFrame
+        ?
 
-def indicators(chosen,data,num):
+    Returns
+    -------
+    resized: pandas.DataFrame
+        ?
+    """
     print("Obtaining the data...\n")
-    cat=data['CountryCode'].astype('category')
-    data['CountryCode']=cat
-    correction=data['CountryCode'].cat.codes
-    data['CountryCode']=correction
-    resized = data.pivot_table(index = ['CountryCode','Year'], columns = "IndicatorCode", values = 'Value')
-    resized['COUNTRYENC']=resized.index.get_level_values(0)
-    resized['NextYearGDP']=resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
-    indicators=pd.DataFrame(chosen)
-    indexs=indicators['Unnamed: 0']
-    indexs=indexs.to_numpy()
-    indexs=list(indexs)
-    bestcorr=resized.iloc[:,indexs]  
-    #resized=resized.drop(index=2010,level=1)
-    final=bestcorr.to_numpy()
+    _append_category_to_countrycode(data)
+
+    resized = data.pivot_table(index=['CountryCode', 'Year'], columns="IndicatorCode", values='Value')
+    resized['COUNTRYENC'] = resized.index.get_level_values(0)
+    resized['NextYearGDP'] = resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
+
+    indicators = pd.DataFrame(chosen)
+    indexs = indicators['Unnamed: 0']
+    indexs = indexs.to_numpy()
+    indexs = list(indexs)
+    # bestcorr = resized.iloc[:, indexs]
+    # resized=resized.drop(index=2010,level=1)
+    # final = bestcorr.to_numpy()
     print("Data obtained\n")
     return resized
