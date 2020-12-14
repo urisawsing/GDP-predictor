@@ -21,6 +21,7 @@ parser.add_argument(
     "task",
     choices=["train", "predict"],
     help="Task to be performed",
+)
 parser.add_argument(
     "model",
     choices=["GradBoost", "MultiLin"],
