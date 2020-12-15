@@ -12,138 +12,10 @@ from sklearn.model_selection import train_test_split
 from .io import indicators
 from .io import readall
 from .io import numadapt
+from .io import writeall
 from .io import _append_category_to_countrycode
 from .config import NUM_PREDICTORS, MODELS_PATH, EXHAUSTIVE_ITER
 
-
-######################################################################
-#EXHAUSTIVE METHODS#
-#######################################################################
-def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER, ncorr=NUM_PREDICTORS):
-    """???
-
-    Parameters
-    ----------
-    iterations: int
-    ncorr: int
-        the number of predictors to use
-
-    Returns
-    -------
-    R: float
-        ?
-    """
-    print("You entered the Exhaustive option for the Gradient boost model\n")
-    print("This method will iterate the predictive model", iterations, "times\n")
-
-    rsq = []
-    mod = []
-    print("running the model for all countries...")
-
-    t0 = time.time()
-    x, y, npre2010 = declaration(ncorr)
-    print(f"Elapsed time preprocessing: {time.time() - t0} seconds")
-
-    print("Entering the training part...")
-    for i in range(iterations):
-
-        print("Iteration ", i + 1, " of ", iterations,)
-
-        t1 = time.time()
-        print("Training the model...")
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=7 * i)
-        gbm_hyperparams = {
-            'n_estimators': 2000,
-            'max_depth': 5,
-            'learning_rate': 0.1,
-            'loss': 'huber',
-            'criterion': 'mse',
-            'validation_fraction': 0.01,
-            'n_iter_no_change': 20
-        }
-        gbm_model = GradientBoostingRegressor(**gbm_hyperparams)
-        t1 = time.time()
-        gbm_model.fit(X_train, y_train)
-        print(f"Elapsed time training: {time.time() - t1} seconds")
-
-        t1 = time.time()
-        gbm_y_pred = gbm_model.predict(X_test)
-        print(f"Elapsed time predicting: {time.time() - t1} seconds")
-        print(f"RMSE: {mean_squared_error(y_test, gbm_y_pred)**0.5}")
-        print(f"R^2: {r2_score(y_test, gbm_y_pred)}")
-        mod.append(gbm_model)
-        rsq.append(r2_score(y_test, gbm_y_pred))
-        gbm_model = 0
-        t1 = 0
-
-    R = max(rsq)
-    ri = rsq.index(R)
-    print("R^2 max obtained is", R)
-    Exh_model = mod[ri]
-
-    name = input("Write the name of the model")
-    fullname = os.path.join(MODELS_PATH, name + 'E_GBM.joblib')
-    dump(gbm_model, fullname)
-
-    print(f"Total execution time: {time.time() - t0} seconds")
-    return R
-
-
-def ExhaustiveML(iterations=EXHAUSTIVE_ITER, ncorr=NUM_PREDICTORS):
-    """???
-
-    Parameters
-    ----------
-    iterations: int
-    ncorr: int
-        the number of predictors to use
-
-    Returns
-    -------
-    R: float
-        ?
-    """
-    print("You entered the Exhaustive option for the MultiLinear model\n")
-    print("This method will iterate the predictive model", iterations, "times\n")
-
-    rsq = []
-    mod = []
-    print("running the model for all countries...")
-
-    t0 = time.time()
-    x, y, npre2010 = declaration(ncorr)
-    print(f"Elapsed time preprocessing: {time.time() - t0} seconds")
-
-    print("Entering the training part...")
-    for i in range(iterations):
-
-        print("Iteration ", i + 1, " of ", iterations,)
-
-        t1 = time.time()
-        print("Training the model...")
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42 * i)
-        linear_model = LinearRegression()
-        linear_model.fit(X_train, y_train)
-        linear_y_pred = linear_model.predict(X_test)
-        t1 = time.time()
-        print(f"RMSE: {mean_squared_error(y_test, linear_y_pred)**0.5}")
-        print(f"R^2: {r2_score(y_test, linear_y_pred)}")
-        print(f"Elapsed time training: {time.time() - t0} seconds")
-        mod.append(linear_model)
-        rsq.append(r2_score(y_test, linear_y_pred))
-        linear_model = 0
-
-    R = max(rsq)
-    ri = rsq.index(R)
-    print("R^2 max obtained is", R)
-    Exh_model = mod[ri]
-
-    name = input("Write the name of the model")
-    fullname = os.path.join(MODELS_PATH, name + 'E_ML.joblib')
-    dump(Exh_model, fullname)
-
-    print(f"Total execution time: {time.time() - t0} seconds")
-    return R
 
 
 #################################################################################
@@ -152,23 +24,23 @@ def ExhaustiveML(iterations=EXHAUSTIVE_ITER, ncorr=NUM_PREDICTORS):
 
 
 def GBmodelTrain(ncorr=NUM_PREDICTORS):
-    """???
-
+    """
     Parameters
     ----------
     ncorr: int
         the number of predictors to use
-
     Returns
     -------
     gbm_model: GradientBoostingRegressor or None
         only returns the model if the number of predictors is different from the default one.
+    Summary
+    -------
+    Computes the gradient boosting for the best 50 indicators, saves the model in the models file and the rsquared in the logs
     """
     print("running gradient boosting for all countries...")
     t0 = time.time()
     x, y, npre2010 = declaration(ncorr)
     print(f"Elapsed time preprocessing: {time.time() - t0} seconds")
-
     t1 = time.time()
     print("Training the model...")
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
@@ -199,28 +71,42 @@ def GBmodelTrain(ncorr=NUM_PREDICTORS):
     dump(gbm_model, fullname)
 
     return gbm_model if ncorr != NUM_PREDICTORS else None
+
     return r2_score(y_test, gbm_y_pred)
 
 
 def GBmodelPredict():
-    """???
-
+    """
     Returns
     -------
-    prediction: float
-        the prediction for 2010.
+    prediction: 
+    array of the prediction for 2010.
+    
+    Summary
+    -------
+    Loads the model you write and predicts the 2011 gdp, the results can be saved on the SQL database 
+    also allows to save the predictions in a csv with the same name of the model
     """
     name = input("Write the name of the model for predicting, without the extension GBM.jlib")
     fullname = name + 'GBM.joblib'
-
+    fullname = os.path.join(MODELS_PATH, name + 'GBM.joblib')
     x, y, npre2010 = declaration()
     gbm_model = load(fullname)
+    
     prediction = gbm_model.predict(npre2010).astype(float)
     print(prediction)
+    print("Some postprocessing...\n")
+    num=numadapt()
+    pdf=pd.DataFrame(prediction)
+    numc=num["CountryCode"]
+    pred=pd.DataFrame(numc)
+    pred["Predicted GDPGrowth"]=pdf
+    writeall(pred)
     print("do you want to save the predictions in a csv?\n")
     a=input("In case you want type Y\n")
     if a=="Y":
-        np.savetxt("predictiondataGB.csv", prediction)
+        predname=os.path.join(MODELS_PATH,"predGBM"+name+".csv")
+        np.savetxt(predname, prediction)
         print("Prediction saved")
         
     return prediction
@@ -232,7 +118,16 @@ def GBmodelPredict():
 
 
 def multilinearTrain():
-    """???"""
+    """
+    Returns 
+    -------
+    r2_score(y_test, linear_y_pred): float
+        Rsquared of the linear model
+    Summary
+    -------
+    Computes the multilinear training for the best 50 indicators, saves the model in the models file and the rsquared in the logs
+    
+    """
     print("running multilinear model for all countries")
 
     x, y, npre2010 = declaration()
@@ -254,13 +149,20 @@ def multilinearTrain():
 
 
 def multilinearPredict():
-    """???
-
+    """
     Returns
     -------
     prediction: float
-        the prediction for 2010.
+        the prediction for 2011 GDP.
+        
+    Summary
+    -------
+    Loads the model you write and predicts the GDP of 2011 with a multilinear model, 
+    the results can be saved on the SQL database ,also allows to save the predictions
+    in a csv with the same name of the model
     """
+    
+    
     name = input("Write the name of the model for predicting, without the extension ML.jlib")
     fullname = name + 'ML.joblib'
     linear_model = load(fullname)
@@ -281,22 +183,31 @@ def multilinearPredict():
 ##########################################################################################################
 
 def declaration(numind=NUM_PREDICTORS):
-    """???
-
+    """
     Parameters
     ----------
     numind: int
         the number of predictors to use
-
     Returns
     -------
     x: pandas.DataFrame
-        ?
+        Set of predictors written on the proper way that the model wil use
+        to predict the y.
+        
     y: pandas.DataFrame
-        ?
+        Array of GDP growths or the variable the model will try to predict
+        
     npre2010: pandas.DataFrame
-        ?
+        Dataset or predictors for the 2010 which will be used
+        to predict the GDP growth
+        
+    Summary
+    -------
+    Grouping of all the preprocessing functions before running the predictions, 
+    reads and prepares the data in order the  model just has to be trained
     """
+    
+    
     high, data, num = fselection()
     predictors = indicators(high, data, num)
     predictors = predictors.fillna(0)
@@ -323,17 +234,21 @@ def declaration(numind=NUM_PREDICTORS):
 
 
 def GBmodelCorr(ncorr=1329):
-    """???
-
+    """
     Parameters
     ----------
     ncorr: int
         the number of predictors to use
-
     Returns
     -------
     gbm_model: GradientBoostingRegressor or None
         only returns the model if the number of predictors is different from the default one.
+    
+    Summary
+    -------
+    This function is reserved to compute the best indicators from the whole set, it is just a 
+    Gradient Boosting which the interesting part is not the model but the importances
+    
     """
     print("running gradient boosting for getting the indicators")
 
@@ -367,22 +282,21 @@ def GBmodelCorr(ncorr=1329):
     return gbm_model if ncorr != NUM_PREDICTORS else None
 
 
-def fselection(answer=False):
+def fselection():
     """??
-
-    Parameters
-    ----------
-    answer: boolean
-
     Returns
     -------
     high: pandas.DataFrame
-        ?
+        Set of best indicators with the index
     data: pandas.DataFrame
-        ?
+        Non preprocessed data from the SQL
     num: pandas.DataFrame
-        ?
-
+        Relation between countrycode and index
+        
+    Summary
+    -------
+    First selection, equal to selection but will ask if you want to reselect the indicators
+    instead of the predefined ones
     """
     print("Selecting the best indicators...\n")
     data = readall()
@@ -390,17 +304,11 @@ def fselection(answer=False):
 
     # append the category to the code
     _append_category_to_countrycode(data)
-
-    # resize the data
-    # resized = data.pivot_table(index=['CountryCode', 'Year'], columns="IndicatorCode", values='Value')
-    # resized['COUNTRYENC'] = resized.index.get_level_values(0)
-    # resized['NextYearGDP'] = resized['NY.GDP.MKTP.KD.ZG'].shift(periods=-1)
-
     print("Do you want to use the selection of indicators predefined?")
     ans = input("In the case you want type Yes, if not type No")
     if ans in ['No', 'no', 'N', 'noup']:
         print("This option may take a while(like 10min), please wait")
-        model = GBmodelCorr(ncorr=1329)
+        model = GBmodelTrain(ncorr=1329)
         a = model.feature_importances_
         df = pd.DataFrame(a)
         high = df[0].nlargest(50)
