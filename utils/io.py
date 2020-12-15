@@ -14,26 +14,10 @@ def readall():
     -------
     pandas.DataFrame
     """
+    print("Reading the SQL file...\n")
     db = sqlite3.connect(DATABASE_PATH)
+    print("Done\n")
     return pd.read_sql_query("SELECT * FROM CountryIndicators", db)
-
-
-def read(country):
-    """Selects from the database only the passed country.
-
-    Parameters
-    ----------
-    country: str
-        the country whose data will be returned.
-
-    Returns
-    -------
-    pandas.DataFrame
-    """
-    db = sqlite3.connect(DATABASE_PATH)
-    di = pd.read_sql_query("SELECT * FROM CountryIndicators", db)
-    return di[di['CountryCode'].str.contains(country)]
-
 
 # countrylist
 def countryarray():
@@ -57,8 +41,10 @@ def numadapt():
     pandas.DataFrame
         the data
     """
+    print("Getting list of countries...\n")
     countries = countryarray()
     countries['num'] = list(range(1, len(countries) + 1))
+    print("Done\n")
     return countries
 
 

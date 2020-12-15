@@ -42,11 +42,11 @@ def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER,ncorr=NUM_PREDICTORS):
     print("Entering the training part...")
     for i in range(iterations):
         
-        print("Iteration ",i," of ",iterations,)
+        print("Iteration ",i+1," of ",iterations,)
         
         t1 = time.time()
         print("Training the model...")
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=7*i)
         gbm_hyperparams = {
         'n_estimators': 2000,
         'max_depth': 5,
@@ -68,10 +68,13 @@ def ExhaustiveGBM(iterations=EXHAUSTIVE_ITER,ncorr=NUM_PREDICTORS):
         print(f"R^2: {r2_score(y_test, gbm_y_pred)}")
         mod.append(gbm_model)
         rsq.append(r2_score(y_test, gbm_y_pred))
+        gbm_model=0
+        t1=0
     
     R=max(rsq)
+    ri=rsq.index(R)
     print("R^2 max obtained is",R)
-    Exh_model=mod.index(max(rsq))
+    Exh_model=mod[ri]
     
     name = input("Write the name of the model")
     fullname = os.path.join(MODELS_PATH, name+'E_GBM.joblib')
@@ -105,11 +108,11 @@ def ExhaustiveML(iterations=EXHAUSTIVE_ITER,ncorr=NUM_PREDICTORS):
     print("Entering the training part...")
     for i in range(iterations):
         
-        print("Iteration ",i," of ",iterations,)
+        print("Iteration ",i+1," of ",iterations,)
         
         t1 = time.time()
         print("Training the model...")
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42*i)
         linear_model = LinearRegression()
         linear_model.fit(X_train, y_train)
         linear_y_pred = linear_model.predict(X_test)
@@ -119,10 +122,13 @@ def ExhaustiveML(iterations=EXHAUSTIVE_ITER,ncorr=NUM_PREDICTORS):
         print(f"Elapsed time training: {time.time() - t0} seconds")
         mod.append(linear_model)
         rsq.append(r2_score(y_test, linear_y_pred))
+        linear_model=0
+        
     
     R=max(rsq)
+    ri=rsq.index(R)
     print("R^2 max obtained is",R)
-    Exh_model=mod.index(max(rsq))
+    Exh_model=mod[ri]
     
     name = input("Write the name of the model")
     fullname = os.path.join(MODELS_PATH, name+'E_ML.joblib')
