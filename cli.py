@@ -7,8 +7,8 @@ from datetime import datetime
 
 sys.path.append('.')
 
-from utils import config, models
-from utils import exhaustive_methods as exh
+from utils import config, io, models
+from utils import exhaustive_method as exh
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,39 +34,45 @@ parser.add_argument(
     default="T",
     help="Choosing between fast execution(time) or exploratory execution(results)"
 )
-
+    
 # You can add here custom optional arguments to your program
 
 if __name__ == "__main__":
     args = parser.parse_args()
     if args.task == "train":
         logging.info("Training")
-
-        if args.model == "GB":
+    
+        if args.model =="GB":
             logging.info("Gradient_Boosting_Method")
-
-            if args.priority == "T":
+    
+            if args.priority =="T":
                 logging.info("Priorizing_Time")
-                R = models.GBmodelTrain()
-            elif args.priority == "R":
-                msg = f"Priorizing_Results with {config.EXHAUSTIVE_ITER} iterations"
+                R=models.GBmodelTrain()
+            
+            if args.priority =="R":
+                msg="Priorizing_Results with "+str(config.EXHAUSTIVE_ITER)+" iterations"
                 logging.info(msg)
-                R = exh.ExhaustiveGBM()
-        elif args.model == "ML":
+                R=exh.ExhaustiveGBM()
+    
+        if args.model=="ML":
             logging.info("MultiLinear_Method")
-
-            if args.priority == "T":
+    
+            if args.priority =="T":
                 logging.info("Priorizing_Time")
-                R = models.multilinearTrain()
-            elif args.priority == "R":
-                msg = f"Priorizing_Results with {config.EXHAUSTIVE_ITER} iterations"
+                R=models.multilinearTrain()
+    
+            if args.priority =="R":
+                msg="Priorizing_Results with "+str(config.EXHAUSTIVE_ITER)+" iterations"
                 logging.info(msg)
-                R = exh.ExhaustiveML()
+                R=exh.ExhaustiveML()
         logging.info(R)
-    elif args.task == "predict":
+    
+    
+    if args.task == "predict":
         logging.info("Predicting")
-
-        if args.model == "GB":
+    
+        if args.model =="GB":
             models.GBmodelPredict()
-        elif args.model == "ML":
+    
+        if args.model =="ML":
             models.multilinearPredict()
