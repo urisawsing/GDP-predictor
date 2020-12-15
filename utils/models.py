@@ -217,7 +217,12 @@ def GBmodelPredict():
     gbm_model = load(fullname)
     prediction = gbm_model.predict(npre2010).astype(float)
     print(prediction)
-    np.savetxt("primeraprediccio.csv", prediction)
+    print("do you want to save the predictions in a csv?\n")
+    a=input("In case you want type Y\n")
+    if a=="Y":
+        np.savetxt("predictiondataGB.csv", prediction)
+        print("Prediction saved")
+        
     return prediction
 
 
@@ -262,6 +267,12 @@ def multilinearPredict():
     x, y, npre2010 = declaration()
     t0 = time.time()
     prediction = linear_model.predict(npre2010).astype(float)
+    
+    print("do you want to save the predictions in a csv?\n")
+    a=input("In case you want type Y\n")
+    if a=="Y":
+        np.savetxt("predictiondataML.csv", prediction)
+        print("Prediction saved")
     return prediction
 
 
