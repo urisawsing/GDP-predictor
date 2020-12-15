@@ -361,7 +361,7 @@ def GBmodelCorr(ncorr=1329):
     print(f"R^2: {r2_score(y_test, gbm_y_pred)}")
 
     name = input("Write the name of the model")
-    fullname = name + 'GBM.joblib'
+    fullname = name + 'GBM_1329.joblib'
     dump(gbm_model, fullname)
 
     return gbm_model if ncorr != NUM_PREDICTORS else None
@@ -400,7 +400,7 @@ def fselection(answer=False):
     ans = input("In the case you want type Yes, if not type No")
     if ans in ['No', 'no', 'N', 'noup']:
         print("This option may take a while(like 10min), please wait")
-        model = GBmodelTrain(ncorr=1329)
+        model = GBmodelCorr(ncorr=1329)
         a = model.feature_importances_
         df = pd.DataFrame(a)
         high = df[0].nlargest(50)
