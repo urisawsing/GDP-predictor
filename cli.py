@@ -8,7 +8,7 @@ from datetime import datetime
 sys.path.append('.')
 
 from utils import config, models
-
+from utils import exhaustive_methods as exh
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,7 +51,7 @@ if __name__ == "__main__":
             elif args.priority == "R":
                 msg = f"Priorizing_Results with {config.EXHAUSTIVE_ITER} iterations"
                 logging.info(msg)
-                R = models.ExhaustiveGBM()
+                R = exh.ExhaustiveGBM()
         elif args.model == "ML":
             logging.info("MultiLinear_Method")
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
             elif args.priority == "R":
                 msg = f"Priorizing_Results with {config.EXHAUSTIVE_ITER} iterations"
                 logging.info(msg)
-                R = models.ExhaustiveML()
+                R = exh.ExhaustiveML()
         logging.info(R)
     elif args.task == "predict":
         logging.info("Predicting")
