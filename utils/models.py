@@ -328,7 +328,15 @@ def GBmodelCorr(ncorr=1329):
 
     x, y, npre2010 = declaration(ncorr)
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=1)
-    gbm_hyperparams = GBM_HYP
+    gbm_hyperparams =  {
+            'n_estimators': 2000,
+            'max_depth': 5,
+            'learning_rate': 0.1,
+            'loss': 'huber',
+            'criterion': 'mse',
+            'validation_fraction': 0.01,
+            'n_iter_no_change': 20
+        }
     gbm_model = GradientBoostingRegressor(**gbm_hyperparams)
     t0 = time.time()
     gbm_model.fit(X_train, y_train)
