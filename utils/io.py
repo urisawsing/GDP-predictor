@@ -19,6 +19,7 @@ def readall():
     print("Done\n")
     return pd.read_sql_query("SELECT * FROM CountryIndicators", db)
 
+
 # countrylist
 def countryarray():
     """??
@@ -53,8 +54,6 @@ def _append_category_to_countrycode(df):
     cat = df['CountryCode'].astype('category')
     df['CountryCode'] = cat
     df['CountryCode'] = df['CountryCode'].cat.codes
-
-
 
 
 def selection(answer=False):
